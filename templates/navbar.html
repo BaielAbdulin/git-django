@@ -16,6 +16,14 @@
         class="collapse navbar-collapse flex-row-reverse"
         id="navbarTogglerDemo02"
       >
+      <div class="navbar-nav">
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'photo:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-link">Logout</button>
+          </form>
+        {% endif %}
+      </div>
         <ul class="navbar-nav">
           {% if user.is_authenticated %}
   

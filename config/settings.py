@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users',
     'photoapp',
     'crispy_bootstrap4',
+    'sorl.thumbnail',
 ]
 
 TAGGIT_CASE_INSENSITIVE = True

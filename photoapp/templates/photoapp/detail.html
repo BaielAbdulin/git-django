@@ -1,6 +1,13 @@
 {% extends 'base.html' %} 
 
 {% block body %}
+<p class="text-center">
+  {% if user.is_authenticated %}
+    <a href="{{ photo.image.url }}" download="{{ photo.title }}" class="btn btn-primary">Скачать</a>
+  {% else %}
+      <!-- Дополнительные действия для незарегистрированных пользователей -->
+  {% endif %}
+</p>
 <div class="mx-auto">
   <h1 class="text-center">{{ photo.title }}</h1>
   <p class="text-center fw-light">Uploaded on: {{photo.created}} <br> By {{photo.submitter.username}}</p>
@@ -13,7 +20,11 @@
 </div>
 <div class="row pb-5">
   <div class="col-md-8">
-    <img src="{{photo.image.url}}" alt="" width="100%" />
+    {% load thumbnail %} {% thumbnail photo.image "300" as im %}
+      <a href="{{ photo.image.url }}">
+        <img src="{{ im.url }}" class="image-detail" alt="{{ photo.title }}">
+      </a>
+    {% endthumbnail %}
   </div>
   <div class="col-md-4">
     <h4>More about this photo:</h4>

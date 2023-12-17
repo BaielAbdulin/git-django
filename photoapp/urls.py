@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib.auth.views import LogoutView
 from .views import (
     PhotoListView,
     PhotoTagListView,
@@ -17,4 +18,5 @@ urlpatterns = [
     path('photo/create/', PhotoCreateView.as_view(), name='create'),
     path('photo/<int:pk>/update/', PhotoUpdateView.as_view(), name='update'),
     path('photo/<int:pk>/delete/', PhotoDeleteView.as_view(), name='delete'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ]
