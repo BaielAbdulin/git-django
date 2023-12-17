@@ -3,11 +3,43 @@
 {% block body %}
 <p class="text-center">
   {% if user.is_authenticated %}
-    <a href="{{ photo.image.url }}" download="{{ photo.title }}" class="btn btn-primary">Скачать</a>
+    <form id="downloadForm" class="text-center">
+      <label for="photoSize">Выберите размер:</label>
+      <select id="photoSize" name="size">
+        <option value="original">Оригинальный размер</option>
+        <option value="small">Маленький</option>
+        <option value="medium">Средний</option>
+        <option value="large">Большой</option>
+      </select>
+      <button type="button" onclick="downloadPhoto()">Скачать</button>
+    </form>
   {% else %}
-      <!-- Дополнительные действия для незарегистрированных пользователей -->
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registrationModal">
+      Скачать
+    </button>
   {% endif %}
 </p>
+
+<!-- Модальное окно для незарегистрированных пользователей -->
+<div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="registrationModalLabel">Регистрация</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Для скачивания фото вам необходимо зарегистрироваться.</p>
+        <!-- Здесь может быть ссылка на страницу регистрации -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        <!-- Здесь может быть ссылка на страницу регистрации -->
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="mx-auto">
   <h1 class="text-center">{{ photo.title }}</h1>
   <p class="text-center fw-light">Uploaded on: {{photo.created}} <br> By {{photo.submitter.username}}</p>
@@ -36,5 +68,11 @@
     <p>{{ photo.description }}</p>
   </div>
 </div>
-
+<script>
+  function downloadPhoto() {
+    var selectedSize = document.getElementById("photoSize").value;
+    var downloadUrl = "{% url 'photo:download_photo' photo.id %}?size=" + selectedSize;
+    window.location.href = downloadUrl;
+  }
+</script>
 {% endblock body %}

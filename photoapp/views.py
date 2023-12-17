@@ -1,9 +1,47 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import PermissionDenied
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from .models import Photo
+from django.views import View
+from PIL import Image
+from django.http import HttpResponse
+import os
+from django.conf import settings
+
+class DownloadPhotoView(View):
+    def get(self, request, photo_id):
+        photo = get_object_or_404(Photo, id=photo_id)
+        size = request.GET.get('size', 'original')
+
+        if size == 'original':
+            image_path = photo.image.path
+        else:
+            # Измените размер изображения с использованием библиотеки PIL
+            image = Image.open(photo.image.path)
+            if size == 'small':
+                image.thumbnail((100, 100))
+            elif size == 'medium':
+                image.thumbnail((300, 300))
+            elif size == 'large':
+                image.thumbnail((800, 800))
+            else:
+                image.thumbnail((300, 300))  # Размер по умолчанию
+
+            # Создаем каталог для временных файлов, если его нет
+            temp_directory = os.path.join(settings.MEDIA_ROOT, 'temp_medium_photos')
+            os.makedirs(temp_directory, exist_ok=True)
+
+            # Сохраняем измененное изображение во временный файл
+            temp_path = os.path.join(temp_directory, f"{photo.title}_{size}.jpg")
+            image.save(temp_path)
+            image_path = temp_path
+
+        with open(image_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='image/jpeg')
+            response['Content-Disposition'] = f'attachment; filename="{photo.title}_{size}.jpg"'
+        return response
 
 class PhotoListView(ListView):
     model = Photo     

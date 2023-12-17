@@ -6,7 +6,8 @@ from .views import (
     PhotoDetailView,
     PhotoCreateView,
     PhotoUpdateView,
-    PhotoDeleteView
+    PhotoDeleteView,
+    DownloadPhotoView
 )
 
 app_name = 'photo'
@@ -19,4 +20,5 @@ urlpatterns = [
     path('photo/<int:pk>/update/', PhotoUpdateView.as_view(), name='update'),
     path('photo/<int:pk>/delete/', PhotoDeleteView.as_view(), name='delete'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('photo/<int:photo_id>/download/', DownloadPhotoView.as_view(), name='download_photo'),
 ]
