@@ -8,6 +8,8 @@
     <div class="d-block mb-4 h-100 text-center">
       <img src="{{photo.image.url}}" class="img-fluid rounded" alt="{{photo.title}}" />
       <button class="btn btn-primary mt-2" onclick="openPhoto({{ photo.id }})">Открыть</button>
+      <button class="btn btn-success mt-2" onclick="likePhoto({{ photo.id }})">Лайк</button>
+      <button class="btn btn-warning mt-2" onclick="favoritePhoto({{ photo.id }})">Избранное</button>
     </div>
   </div>
   {% endfor %}
@@ -16,6 +18,16 @@
 <script>
   function openPhoto(photoId) {
     window.location.href = "{% url 'photo:detail' 0 %}".replace('0', photoId);
+  }
+
+  function likePhoto(photoId) {
+    // Добавьте код для обработки лайка
+    // Можно использовать AJAX для отправки запроса на сервер
+  }
+
+  function favoritePhoto(photoId) {
+    // Добавьте код для обработки сохранения в избранное
+    // Можно использовать AJAX для отправки запроса на сервер
   }
 </script>
 

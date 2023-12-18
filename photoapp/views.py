@@ -11,8 +11,14 @@ from django.conf import settings
 from django.shortcuts import render
 from .models import Photo, Comment
 from .forms import CommentForm
-import os
 from django.contrib import messages
+from taggit.managers import TaggableManager
+from django.urls import reverse
+from django.db.models import Count
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+import os
 
 class DeleteCommentView(LoginRequiredMixin, View):
     login_url = 'user:login'
@@ -25,7 +31,7 @@ class DeleteCommentView(LoginRequiredMixin, View):
         if request.user == comment.author:
             comment.delete()
 
-        return redirect('photo:detail', pk=photo_id)
+        return redirect('photo:detail', pk=photo_id)    
     
 class AddCommentView(View):
     def post(self, request, photo_id):
@@ -78,6 +84,11 @@ class PhotoListView(ListView):
     template_name = 'photoapp/list.html'
     context_object_name = 'photos'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(like_count=Count('likes'))
+        return queryset
+
 class PhotoTagListView(PhotoListView):
     template_name = 'photoapp/taglist.html'
 
@@ -96,6 +107,50 @@ class PhotoDetailView(DetailView):
     model = Photo
     template_name = 'photoapp/detail.html'
     context_object_name = 'photo'
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get('action')
+        photo = self.get_object()
+
+        if action == 'like':
+            return self.handle_like(photo)
+        elif action == 'favorite':
+            return self.handle_favorite(photo)
+
+        # Возвращаем ошибку, если не указано поддерживаемое действие
+        return JsonResponse({'error': 'Invalid action'}, status=400)
+
+    def handle_like(self, photo):
+        user = self.request.user
+
+        if user.is_authenticated:
+            if photo.likes.filter(pk=user.pk).exists():
+                photo.likes.remove(user)
+                liked = False
+            else:
+                photo.likes.add(user)
+                liked = True
+
+            return JsonResponse({'liked': liked, 'likes_count': photo.likes.count()})
+
+        # Возвращаем ошибку, если пользователь не аутентифицирован
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
+    def handle_favorite(self, photo):
+        user = self.request.user
+
+        if user.is_authenticated:
+            if photo.favorites.filter(pk=user.pk).exists():
+                photo.favorites.remove(user)
+                favorited = False
+            else:
+                photo.favorites.add(user)
+                favorited = True
+
+            return JsonResponse({'favorited': favorited, 'favorites_count': photo.favorites.count()})
+
+        # Возвращаем ошибку, если пользователь не аутентифицирован
+        return JsonResponse({'error': 'Authentication required'}, status=401)
 
 class PhotoCreateView(LoginRequiredMixin, CreateView):
     model = Photo

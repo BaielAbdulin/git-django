@@ -101,7 +101,18 @@
         </div>
       </div>
     </div>
-
+    <div>
+      <button class="btn btn-primary" onclick="goBack()">Назад</button>
+      <button class="btn btn-success" id="likeButton" onclick="likePhoto({{ photo.id }})">
+        {% if is_liked %}Отменить лайк{% else %}Лайк{% endif %}
+      </button>
+      <span id="likesCount">{{ photo.likes.count }} лайков</span>
+    
+      <button class="btn btn-warning" id="favoriteButton" onclick="favoritePhoto({{ photo.id }})">
+        {% if is_favorite %}Убрать из избранного{% else %}В избранное{% endif %}
+      </button>
+      <span id="favoritesCount">{{ photo.favorites.count }} в избранном</span>
+    </div>
     <script>
       function downloadPhoto() {
         var selectedSize = document.getElementById("photoSize").value;
@@ -116,4 +127,58 @@
       document.getElementById("registrationButton").addEventListener("click", function() {
       });
     </script>
+
+    <script>
+      function goBack() {
+        window.location.href = "{% url 'photo:list' %}";
+      }
+    
+      function likePhoto(photoId) {
+        $.ajax({
+          type: 'POST',
+          url: '{% url "photo:detail" pk=photo.id %}',
+          data: { action: 'like', csrfmiddlewaretoken: csrftoken },
+          dataType: 'json',
+          success: function(response) {
+            $('#likeButton').html(response.liked ? 'Отменить лайк' : 'Лайк');
+            $('#likesCount').html(response.likes_count + ' лайков');
+    }
+  });
+}
+
+      function favoritePhoto(photoId) {
+        $.ajax({
+          type: 'POST',
+          url: '{% url "photo:detail" pk=photo.id %}',
+          data: { action: 'favorite', csrfmiddlewaretoken: csrftoken },
+          dataType: 'json',
+          success: function(response) {
+            $('#favoriteButton').html(response.favorited ? 'Убрать из избранного' : 'В избранное');
+            $('#favoritesCount').html(response.favorites_count + ' в избранном');
+    }
+  });
+}
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+      // Получаем CSRF-токен из cookie
+      function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Ищем куку по имени
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+    
+      var csrftoken = getCookie('csrftoken');
+    </script>
+    
   {% endblock body %}

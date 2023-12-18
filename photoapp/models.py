@@ -23,7 +23,9 @@ class Photo(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='photos/')
     submitter = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    tags = TaggableManager() 
+    tags = TaggableManager()
+    likes = models.ManyToManyField(User, related_name='liked_photos', blank=True)
+    favorites = models.ManyToManyField(User, related_name='favorite_photos', blank=True)
 
     def __str__(self):
         return self.title
