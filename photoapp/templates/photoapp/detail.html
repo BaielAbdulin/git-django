@@ -26,8 +26,8 @@
     <p class="text-center fw-light">Uploaded on: {{photo.created}} <br> By {{photo.submitter.username}}</p>
     {% if user == photo.submitter %}
       <p class="text-center">
-        <span><a href="{% url 'photo:update' photo.id %}" class="btn btn-outline-primary px-2">Update</a></span>
-        <span><a href="{% url 'photo:delete' photo.id %}" class="btn btn-outline-danger px-2">Delete</a></span>
+        <span><a href="{% url 'photo:update' photo.id %}" class="btn btn-outline-primary px-2">Редактировать</a></span>
+        <span><a href="{% url 'photo:delete' photo.id %}" class="btn btn-outline-danger px-2">Удалить</a></span>
       </p>
     {% endif %}
   </div>
@@ -43,6 +43,24 @@
               </a>
             </div>
           {% endthumbnail %}
+          <p class="text-center">
+            {% if user.is_authenticated %}
+              <form id="downloadForm" class="text-center">
+                <label for="photoSize">Выберите размер:</label>
+                <select id="photoSize" name="size">
+                  <option value="original">Оригинальный размер</option>
+                  <option value="small">Маленький</option>
+                  <option value="medium">Средний</option>
+                  <option value="large">Большой</option>
+                </select>
+                <button type="button" onclick="downloadPhoto()" class="btn btn-primary">Скачать</button>
+              </form>
+            {% else %}
+              <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registrationModal">
+                Скачать
+              </button>
+            {% endif %}
+          </p>
         </div>
 
         <div class="col-md-4">
@@ -59,41 +77,30 @@
             <form method="post" action="{% url 'photo:add_comment' photo.id %}">
               {% csrf_token %}
               <textarea name="comment" placeholder="Ваш комментарий"></textarea>
-              <button type="submit" class="btn btn-primary">Оставить комментарий</button>
+              <button type="submit" class="btn btn-primary">Комменитировать</button>
             </form>
           {% else %}
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registrationModal">
               Добавить комментарий
             </button>
           {% endif %}
-          
           <!-- Вывод комментариев -->
           {% for comment in photo.comments.all %}
-            <p>{{ comment.author.username }}: {{ comment.text }}</p>
+          <p>
+            {{ comment.author.username }}: {{ comment.text }}
+            {% if user.is_authenticated %}
+              {% if user == comment.author %}
+                <form method="post" action="{% url 'photo:delete_comment' photo.id comment.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                </form>
+              {% endif %}
+            {% endif %}
+            </p>
           {% endfor %}
-          
         </div>
       </div>
     </div>
-
-    <p class="text-center">
-      {% if user.is_authenticated %}
-        <form id="downloadForm" class="text-center">
-          <label for="photoSize">Выберите размер:</label>
-          <select id="photoSize" name="size">
-            <option value="original">Оригинальный размер</option>
-            <option value="small">Маленький</option>
-            <option value="medium">Средний</option>
-            <option value="large">Большой</option>
-          </select>
-          <button type="button" onclick="downloadPhoto()" class="btn btn-primary">Скачать</button>
-        </form>
-      {% else %}
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registrationModal">
-          Скачать
-        </button>
-      {% endif %}
-    </p>
 
     <script>
       function downloadPhoto() {

@@ -14,6 +14,19 @@ from .forms import CommentForm
 import os
 from django.contrib import messages
 
+class DeleteCommentView(LoginRequiredMixin, View):
+    login_url = 'user:login'
+
+    def post(self, request, photo_id, comment_id, *args, **kwargs):
+        photo = get_object_or_404(Photo, id=photo_id)
+        comment = get_object_or_404(Comment, id=comment_id)
+
+        # Проверка, что пользователь удаляет свой собственный комментарий
+        if request.user == comment.author:
+            comment.delete()
+
+        return redirect('photo:detail', pk=photo_id)
+    
 class AddCommentView(View):
     def post(self, request, photo_id):
         photo = get_object_or_404(Photo, id=photo_id)
