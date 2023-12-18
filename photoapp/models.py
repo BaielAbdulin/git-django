@@ -1,6 +1,21 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from taggit.managers import TaggableManager
+from django.contrib.auth.models import User
+from django.urls import reverse
+
+class Comment(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    photo = models.ForeignKey('Photo', on_delete=models.CASCADE, related_name='comments')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.author.username} - {self.text[:20]}'
+
+    class Meta:
+        ordering = ['-created_at']
+
 
 class Photo(models.Model):
     title = models.CharField(max_length=45)

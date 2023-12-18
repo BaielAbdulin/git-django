@@ -7,8 +7,25 @@ from .models import Photo
 from django.views import View
 from PIL import Image
 from django.http import HttpResponse
-import os
 from django.conf import settings
+from django.shortcuts import render
+from .models import Photo, Comment
+from .forms import CommentForm
+import os
+from django.contrib import messages
+
+class AddCommentView(View):
+    def post(self, request, photo_id):
+        photo = get_object_or_404(Photo, id=photo_id)
+        comment_text = request.POST.get('comment')
+        
+        if comment_text:
+            Comment.objects.create(author=request.user, photo=photo, text=comment_text)
+            messages.success(request, 'Комментарий успешно добавлен.')
+        else:
+            messages.error(request, 'Пустой комментарий не может быть добавлен.')
+
+        return redirect('photo:detail', pk=photo_id)
 
 class DownloadPhotoView(View):
     def get(self, request, photo_id):
@@ -99,3 +116,4 @@ class PhotoDeleteView(UserIsSubmitter, DeleteView):
     template_name = 'photoapp/delete.html'
     model = Photo
     success_url = reverse_lazy('photo:list')
+

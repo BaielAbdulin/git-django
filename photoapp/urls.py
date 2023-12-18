@@ -1,5 +1,6 @@
 from django.urls import path
 from django.contrib.auth.views import LogoutView
+from .views import AddCommentView
 from .views import (
     PhotoListView,
     PhotoTagListView,
@@ -21,4 +22,5 @@ urlpatterns = [
     path('photo/<int:pk>/delete/', PhotoDeleteView.as_view(), name='delete'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('photo/<int:photo_id>/download/', DownloadPhotoView.as_view(), name='download_photo'),
+    path('photo/<int:photo_id>/add_comment/', AddCommentView.as_view(), name='add_comment'),
 ]

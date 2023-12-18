@@ -1,78 +1,112 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 
 {% block body %}
-<p class="text-center">
-  {% if user.is_authenticated %}
-    <form id="downloadForm" class="text-center">
-      <label for="photoSize">Выберите размер:</label>
-      <select id="photoSize" name="size">
-        <option value="original">Оригинальный размер</option>
-        <option value="small">Маленький</option>
-        <option value="medium">Средний</option>
-        <option value="large">Большой</option>
-      </select>
-      <button type="button" onclick="downloadPhoto()">Скачать</button>
-    </form>
-  {% else %}
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registrationModal">
-      Скачать
-    </button>
-  {% endif %}
-</p>
-
-<!-- Модальное окно для незарегистрированных пользователей -->
-<div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="registrationModalLabel">Регистрация</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>Для скачивания фото вам необходимо зарегистрироваться.</p>
-        <!-- Здесь может быть ссылка на страницу регистрации -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-        <!-- Здесь может быть ссылка на страницу регистрации -->
+  <!-- Модальное окно для незарегистрированных пользователей -->
+  <div class="modal fade" id="registrationModal" tabindex="-1" aria-labelledby="registrationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="registrationModalLabel">Регистрация</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Для скачивания фото и комментирования вам необходимо зарегистрироваться или войти в аккаунт.</p>
+          <!-- Здесь может быть ссылка на страницу регистрации -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+          <a href="{% url 'user:signup' %}" class="btn btn-primary" id="registrationButton">Зарегистрироваться</a>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="mx-auto">
-  <h1 class="text-center">{{ photo.title }}</h1>
-  <p class="text-center fw-light">Uploaded on: {{photo.created}} <br> By {{photo.submitter.username}}</p>
-  {% if user == photo.submitter %}
+  <div class="mx-auto">
+    <h1 class="text-center">{{ photo.title }}</h1>
+    <p class="text-center fw-light">Uploaded on: {{photo.created}} <br> By {{photo.submitter.username}}</p>
+    {% if user == photo.submitter %}
+      <p class="text-center">
+        <span><a href="{% url 'photo:update' photo.id %}" class="btn btn-outline-primary px-2">Update</a></span>
+        <span><a href="{% url 'photo:delete' photo.id %}" class="btn btn-outline-danger px-2">Delete</a></span>
+      </p>
+    {% endif %}
+  </div>
+
+  <div class="row pb-5">
+    <div class="col-md-8">
+      <div class="row pb-5">
+        <div class="col-md-8">
+          {% load thumbnail %} {% thumbnail photo.image "550" as im %}
+            <div style="pointer-events: none;">
+              <a href="{{ photo.image.url }}" style="pointer-events: none;">
+                <img src="{{ im.url }}" class="image-detail" alt="{{ photo.title }}" style="pointer-events: none;">
+              </a>
+            </div>
+          {% endthumbnail %}
+        </div>
+
+        <div class="col-md-4">
+          <h4>More about this photo:</h4>
+          <ul class="list-group list-group-horizontal-lg list-unstyled py-4">
+            {% for tag in photo.tags.all %}
+              <li><a href="{% url 'photo:tag' tag.slug %}" class="btn btn-outline-primary btn-sm list-group-item list-group-item-primary">{{tag.name}}</a></li>
+            {% endfor %}
+          </ul>
+          <p>{{ photo.description }}</p>
+          
+          <!-- Форма для комментариев -->
+          {% if user.is_authenticated %}
+            <form method="post" action="{% url 'photo:add_comment' photo.id %}">
+              {% csrf_token %}
+              <textarea name="comment" placeholder="Ваш комментарий"></textarea>
+              <button type="submit" class="btn btn-primary">Оставить комментарий</button>
+            </form>
+          {% else %}
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registrationModal">
+              Добавить комментарий
+            </button>
+          {% endif %}
+          
+          <!-- Вывод комментариев -->
+          {% for comment in photo.comments.all %}
+            <p>{{ comment.author.username }}: {{ comment.text }}</p>
+          {% endfor %}
+          
+        </div>
+      </div>
+    </div>
+
     <p class="text-center">
-      <span><a href="{% url 'photo:update' photo.id %}" class="text-primary px-2">Update</a></span>
-      <span><a href="{% url 'photo:delete' photo.id %}" class="text-danger px-2">Delete</a></span>
+      {% if user.is_authenticated %}
+        <form id="downloadForm" class="text-center">
+          <label for="photoSize">Выберите размер:</label>
+          <select id="photoSize" name="size">
+            <option value="original">Оригинальный размер</option>
+            <option value="small">Маленький</option>
+            <option value="medium">Средний</option>
+            <option value="large">Большой</option>
+          </select>
+          <button type="button" onclick="downloadPhoto()" class="btn btn-primary">Скачать</button>
+        </form>
+      {% else %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registrationModal">
+          Скачать
+        </button>
+      {% endif %}
     </p>
-  {% endif %}
-</div>
-<div class="row pb-5">
-  <div class="col-md-8">
-    {% load thumbnail %} {% thumbnail photo.image "300" as im %}
-      <a href="{{ photo.image.url }}">
-        <img src="{{ im.url }}" class="image-detail" alt="{{ photo.title }}">
-      </a>
-    {% endthumbnail %}
-  </div>
-  <div class="col-md-4">
-    <h4>More about this photo:</h4>
-    <ul class="list-group list-group-horizontal-lg list-unstyled py-4">
-      {% for tag in photo.tags.all %}
-        <li><a href="{% url 'photo:tag' tag.slug %}" class="btn btn-sm list-group-item list-group-item-primary">{{tag.name}}</a></li>
-      {% endfor %}
-    </ul>
-    <p>{{ photo.description }}</p>
-  </div>
-</div>
-<script>
-  function downloadPhoto() {
-    var selectedSize = document.getElementById("photoSize").value;
-    var downloadUrl = "{% url 'photo:download_photo' photo.id %}?size=" + selectedSize;
-    window.location.href = downloadUrl;
-  }
-</script>
-{% endblock body %}
+
+    <script>
+      function downloadPhoto() {
+        var selectedSize = document.getElementById("photoSize").value;
+        var downloadUrl = "{% url 'photo:download_photo' photo.id %}?size=" + selectedSize;
+        window.location.href = downloadUrl;
+      }
+    </script>
+
+    <script>
+      document.getElementById("registrationLink").addEventListener("click", function() {
+      });
+      document.getElementById("registrationButton").addEventListener("click", function() {
+      });
+    </script>
+  {% endblock body %}
