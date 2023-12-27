@@ -151,6 +151,14 @@ class PhotoDetailView(DetailView):
 
         # Возвращаем ошибку, если пользователь не аутентифицирован
         return JsonResponse({'error': 'Authentication required'}, status=401)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        photo = self.get_object()
+        user = self.request.user
+        
+        context['is_liked'] = user.is_authenticated and photo.likes.filter(pk=user.pk).exists()
+
+        return context
 
 class PhotoCreateView(LoginRequiredMixin, CreateView):
     model = Photo

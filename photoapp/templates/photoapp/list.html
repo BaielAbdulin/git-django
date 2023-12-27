@@ -6,17 +6,43 @@
   {% for photo in photos %}
   <div class="col-lg-3 col-md-4 col-xs-6">
     <div class="d-block mb-4 h-100 text-center">
-      <img src="{{photo.image.url}}" class="img-fluid rounded" alt="{{photo.title}}" />
+      <div class="position-relative">
+        <!-- Добавлен класс no-right-click для блокировки правой кнопки мыши -->
+        <img src="{{photo.image.url}}" class="img-fluid rounded no-right-click" alt="{{photo.title}}" />
+        <!-- Текстовый водяной знак -->
+        <div class="text-watermark">IUCA</div>
+      </div>
+      <!-- Кнопка "Открыть" (если нужно) -->
       <button class="btn btn-primary mt-2" onclick="openPhoto({{ photo.id }})">Открыть</button>
     </div>
   </div>
   {% endfor %}
 </div>
 
+<style>
+  /* Стили для текстового водяного знака */
+  .text-watermark {
+    position: absolute;
+    bottom: 100px;
+    right: 120px;
+    color: rgba(24, 5, 5, 0.539); /* Прозрачность текста */
+    font-size: 38px;
+    font-weight: bold;
+  }
+</style>
+
 <script>
+  // Функция открытия фото (если нужно)
   function openPhoto(photoId) {
     window.location.href = "{% url 'photo:detail' 0 %}".replace('0', photoId);
   }
+
+  // Запрещаем контекстное меню для элементов с классом no-right-click
+  document.addEventListener('contextmenu', function (e) {
+    if (e.target.classList.contains('no-right-click')) {
+      e.preventDefault();
+    }
+  });
 </script>
 
 {% endblock body %}

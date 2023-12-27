@@ -10,8 +10,8 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>Для скачивания фото и комментирования вам необходимо зарегистрироваться или войти в аккаунт.</p>
-          <!-- Здесь может быть ссылка на страницу регистрации -->
+          <p>Для скачивания фото и комментирования вам необходимо зарегистрироваться/войти в аккаунт.</p>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
@@ -44,7 +44,7 @@
             </div>
           {% endthumbnail %}
           <p class="text-center">
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and is_liked %}
               <form id="downloadForm" class="text-center">
                 <label for="photoSize">Выберите размер:</label>
                 <select id="photoSize" name="size">
@@ -71,13 +71,12 @@
             {% endfor %}
           </ul>
           <p>{{ photo.description }}</p>
-          
           <!-- Форма для комментариев -->
           {% if user.is_authenticated %}
             <form method="post" action="{% url 'photo:add_comment' photo.id %}">
               {% csrf_token %}
               <textarea name="comment" placeholder="Ваш комментарий"></textarea>
-              <button type="submit" class="btn btn-primary">Комменитировать</button>
+              <button type="submit" class="btn btn-primary">Комментировать</button>
             </form>
           {% else %}
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registrationModal">
@@ -134,17 +133,21 @@
       }
     
       function likePhoto(photoId) {
-        $.ajax({
-          type: 'POST',
-          url: '{% url "photo:detail" pk=photo.id %}',
-          data: { action: 'like', csrfmiddlewaretoken: csrftoken },
-          dataType: 'json',
-          success: function(response) {
-            $('#likeButton').html(response.liked ? 'Отменить лайк' : 'Лайк');
-            $('#likesCount').html(response.likes_count + ' лайков');
+  $.ajax({
+    type: 'POST',
+    url: '{% url "photo:detail" pk=photo.id %}',
+    data: { action: 'like', csrfmiddlewaretoken: csrftoken },
+    dataType: 'json',
+    success: function(response) {
+      // Reload the page after successful like action
+      location.reload();
+    },
+    error: function(error) {
+      console.log('Error liking photo:', error.responseText);
     }
   });
 }
+
 
       function favoritePhoto(photoId) {
         $.ajax({
